@@ -54,6 +54,7 @@ public class Server {
         private String clientId; // 클라이언트 ID
 
         public ClientHandler(Socket socket) {
+            this.clientId = "Someone";
             this.socket = socket;
             try {
                 reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -66,7 +67,7 @@ public class Server {
         @Override
         public void run() {
             try {
-                writer.println("서버에 연결되었습니다. 명령어를 입력하세요.");
+                writer.println("서버에 연결되었습니다. 채팅을 시작헤요.");
                 String message;
 
                 while ((message = reader.readLine()) != null) {
@@ -87,7 +88,7 @@ public class Server {
                         break;
 
                     } else {
-                        writer.println("알 수 없는 명령어입니다.");
+                        continue;
                     }
                 }
             } catch (IOException e) {
