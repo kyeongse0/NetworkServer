@@ -37,11 +37,21 @@ public class Server {
         }
     }
 
+    // 특정 발신자를 제외한 모든 클라이언트에 메시지 전송 (채팅용)
+    public static synchronized void broadcastToOthers(String message, ClientHandler sender) {
+        for (ClientHandler client : clientHandlers) {
+            if (client != sender) { // 발신자를 제외한 다른 클라이언트에게만 메시지 전송
+                client.sendMessage(message);
+            }
+        }
+    }
+
     // 클라이언트 핸들러 클래스
     private static class ClientHandler implements Runnable {
         private Socket socket;
         private BufferedReader reader;
         private PrintWriter writer;
+        private String clientId; // 클라이언트 ID
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -60,14 +70,22 @@ public class Server {
                 String message;
 
                 while ((message = reader.readLine()) != null) {
+                    if (message.isEmpty()) {
+                        // 빈 메시지는 무시
+                        continue;
+                    }
+
                     if (message.startsWith("POST")) { // 게시글 작성 명령어
-                        String postContent = message.substring(5);
+                        String postContent = message.substring(5).trim();
                         addPost(postContent);
+
                     } else if (message.startsWith("CHAT")) { // 채팅 명령어
-                        String chatMessage = message.substring(5);
-                        broadcast(chatMessage);
+                        String chatMessage = message.substring(5).trim();
+                        broadcastToOthers(clientId + ": " + chatMessage, this);
+
                     } else if (message.equalsIgnoreCase("EXIT")) { // 종료 명령어
                         break;
+
                     } else {
                         writer.println("알 수 없는 명령어입니다.");
                     }
